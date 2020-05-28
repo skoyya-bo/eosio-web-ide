@@ -6,6 +6,7 @@ struct [[eosio::table("message"), eosio::contract("talk")]] message {
     uint64_t    reply_to = {}; // Non-0 if this is a reply
     eosio::name user     = {};
     std::string content  = {};
+    std::set<eosio::name>  liked_by   = {};
 
     uint64_t primary_key() const { return id; }
     uint64_t get_reply_to() const { return reply_to; }
@@ -44,4 +45,26 @@ class talk : eosio::contract {
             message.content  = content;
         });
     }
+    
+    //like a post/message
+    [[eosio::action]] void like(uint64_t id, eosio::name by_user) {
+
+        message_table table{get_self(), 0};
+
+        // Check user
+        require_auth(by_user);
+
+        auto it = table.find(id);
+        //check if its valid post to like it.
+        if ( it != std::end(table)){
+            // Ideally we need to -- throw std::logic_error("Invalid post id :"+std::to_string(id)); if no post xists with id
+            std::set<eosio::name> liked_by = it->liked_by;
+            if( liked_by.find(by_user) == std::end(liked_by)) {
+                //Ideally we need to throw excetion if same user trying to like several times to the same post.
+               // throw std::logic_error( by_user.to_string() +": user can not like a post more than once");
+                liked_by.emplace(by_user);
+            }
+         }
+    }
+
 };
