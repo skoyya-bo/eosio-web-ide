@@ -12,6 +12,7 @@ interface PostData {
     id?: number;
     user?: string;
     reply_to?: number;
+    liked_by?: [];
     content?: string;
 };
 
@@ -135,13 +136,14 @@ class Messages extends React.Component<{}, { content: string }> {
                     json: true, code: 'talk', scope: '', table: 'message', limit: 1000,
                 });
                 let content =
-                    'id          reply_to      user          content\n' +
+                    'id          reply_to      user        liked_by          content\n' +
                     '=============================================================\n';
                 for (let row of rows.rows)
                     content +=
                         (row.id + '').padEnd(12) +
                         (row.reply_to + '').padEnd(12) + '  ' +
                         row.user.padEnd(14) +
+                        (row.liked_by +'').padEnd(12) +
                         row.content + '\n';
                 this.setState({ content });
             } catch (e) {

@@ -49,6 +49,25 @@ BOOST_AUTO_TEST_CASE(post) try {
         ("user", "john")             //
         ("content", "post 3: reply") //
     );
+    //like action. happy case.
+    t.push_action(
+        N(talk), N(like), N(john),
+        mutable_variant_object       //
+        ("id", 3)                    //
+        ("by_user", "john")             //
+    );
+
+    //Can't like a non-existing message
+    BOOST_CHECK_THROW(
+        [&] {
+            t.push_action(
+                N(talk), N(like), N(john),
+                mutable_variant_object       //
+                ("id", 4)                    //
+                ("by_user", "john")             //
+            );
+        }(),
+        fc::exception);
 
     // Can't reply to non-existing message
     BOOST_CHECK_THROW(

@@ -54,17 +54,23 @@ class talk : eosio::contract {
         // Check user
         require_auth(by_user);
 
-        auto it = table.find(id);
-        //check if its valid post to like it.
-        if ( it != std::end(table)){
-            // Ideally we need to -- throw std::logic_error("Invalid post id :"+std::to_string(id)); if no post xists with id
-            std::set<eosio::name> liked_by = it->liked_by;
-            if( liked_by.find(by_user) == std::end(liked_by)) {
-                //Ideally we need to throw excetion if same user trying to like several times to the same post.
-               // throw std::logic_error( by_user.to_string() +": user can not like a post more than once");
-                liked_by.emplace(by_user);
+        const auto& msg  = table.get(id);
+            std::set<eosio::name> liked_by = msg.liked_by;
+            auto user_it = liked_by.find(by_user);
+            if ( user_it == std::end(liked_by)){
+                liked_by.insert(by_user); 
+            } else {
+                liked_by.erase(user_it);  // flip the like
             }
-         }
-    }
 
+            table.erase(msg);
+            // Record the updated message
+            table.emplace(get_self(), [&](auto& message) {
+                message.id       = msg.id;
+                message.reply_to = msg.reply_to;
+                message.user     = msg.user;
+                message.content  = msg.content;
+                message.liked_by = liked_by;
+            });
+    }
 };
